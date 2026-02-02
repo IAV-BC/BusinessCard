@@ -81,16 +81,58 @@ ADR:;;${profile.location}
 END:VCARD`;
 }
 
-// Download vCard
-function downloadVCard(profile) {
+// Generate vCard data URL
+function getVCardUrl(profile) {
     const vcard = generateVCard(profile);
-    const element = document.createElement('a');
-    element.setAttribute('href', 'data:text/vcard;charset=utf-8,' + encodeURIComponent(vcard));
-    element.setAttribute('download', `${profile.name.replace(/\s+/g, '_')}.vcf`);
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    return 'data:text/vcard;charset=utf-8,' + encodeURIComponent(vcard);
+}
+
+// Create vCard Blob
+function getVCardBlob(profile) {
+    const vcard = generateVCard(profile);
+    return new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+}
+
+// Open vCard to add to contacts (best-effort across platforms)
+function openVCard(profile) {
+    const blob = getVCardBlob(profile);
+    const filename = `${profile.name.replace(/\s+/g, '_')}.vcf`;
+
+    // IE / Edge (legacy) - prompts to open with associated app
+    if (navigator.msSaveOrOpenBlob) {
+        navigator.msSaveOrOpenBlob(blob, filename);
+        return;
+    }
+
+    // Try Web Share API with files (supported on some desktop/mobile browsers)
+    try {
+        const file = new File([blob], filename, { type: blob.type });
+        if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+            navigator.share({ files: [file], title: `Add ${profile.name}`, text: `Import contact for ${profile.name}` })
+                .catch(() => {
+                    // if share fails, fall back to blob URL
+                });
+            return;
+        }
+    } catch (e) {
+        // ignore and fall back
+    }
+
+    // Try to open a blob URL in a new tab/window - some systems will hand off to the contacts app
+    const url = URL.createObjectURL(blob);
+
+    // Create a temporary anchor without download attribute so the browser may open it with the default app
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    // Note: we intentionally do NOT set a.download so the OS/browser can decide how to handle the .vcf
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Revoke the object URL shortly after
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
 // Render business card
@@ -108,7 +150,7 @@ async function renderCard(profileId) {
                 <p>Available profiles:</p>
                 <ul class="profile-list">
                     ${loadedProfiles.map((p, idx) => 
-                        p ? `<li><a href="${p.path || '#' + availableProfiles[idx]}">${p.name} - ${p.title}</a></li>` : ''
+                        p ? `<li><a href="#${availableProfiles[idx]}">${p.name} - ${p.title}</a></li>` : ''
                     ).join('')}
                 </ul>
             </div>
@@ -130,7 +172,7 @@ async function renderCard(profileId) {
                 <p>Available profiles:</p>
                 <ul class="profile-list">
                     ${loadedProfiles.map((p, idx) => 
-                        p ? `<li><a href="${p.path || '#' + availableProfiles[idx]}">${p.name} - ${p.title}</a></li>` : ''
+                        p ? `<li><a href="#${availableProfiles[idx]}">${p.name} - ${p.title}</a></li>` : ''
                     ).join('')}
                 </ul>
             </div>
@@ -208,8 +250,8 @@ async function renderCard(profileId) {
 
             <!-- Add to Contacts Button -->
             <div class="text-center mt-3 mb-2">
-                <button class="btn-add-contact" onclick="window.downloadCurrentVCard()">
-                    <i class="fas fa-download"></i> Download vCard (.vcf)
+                <button class="btn-add-contact" onclick="window.openCurrentVCard()">
+                    <i class="fas fa-user-plus"></i> Add to Contacts
                 </button>
             </div>
         </div>
@@ -218,8 +260,8 @@ async function renderCard(profileId) {
     // Update page title
     document.title = `${profile.name} - IAV Hassan II`;
     
-    // Make download function available globally
-    window.downloadCurrentVCard = () => downloadVCard(profile);
+    // Make open function available globally
+    window.openCurrentVCard = () => openVCard(profile);
 }
 
 // Initialize on page load
