@@ -125,27 +125,37 @@ body {
 
 /* Button */
 .btn-add-contact {
-    background: var(--primary-color);
+    background: linear-gradient(90deg, var(--accent-red) 0%, #b71c2f 100%);
     color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .btn-add-contact:hover {
-    background: var(--accent-red);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(196, 30, 58, 0.18);
 }
 
-.btn-add-contact i {
-    margin-right: 5px
-    justify-content: center;
-    gap: 15px;
-    padding: 20px 30px;
-    border-top: 1px solid #e9ecef;
+.btn-add-contact svg {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.btn-add-contact .btn-add-text {
+    color: white;
+}
+
+/* Optional modifier if you want a different red style */
+.btn-add-contact--red {
+    background: linear-gradient(90deg, #c41e3a 0%, #a81a38 100%);
 }
 
 .social-link {

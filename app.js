@@ -88,8 +88,55 @@ function getVCardUrl(profile) {
 }
 
 // Create vCard Blob
-function getVCardBlob(profile) {
-    const vcard = generateVCard(profile);
+// Helper: convert Blob to base64 (data part)
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const result = reader.result;
+            const comma = result.indexOf(',');
+            resolve(comma >= 0 ? result.slice(comma + 1) : result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
+// Generate vCard including embedded PHOTO (if available)
+async function generateVCardWithPhoto(profile) {
+    const emails = Array.isArray(profile.email) ? profile.email : [profile.email];
+    const emailLines = emails.map((email, idx) => 
+        `EMAIL;TYPE=${idx === 0 ? 'WORK,PREF' : 'HOME'}:${email}`
+    ).join('\n');
+    
+    const phones = Array.isArray(profile.phone) ? profile.phone : [profile.phone];
+    const phoneLines = phones.map((phone, idx) => 
+        `TEL;TYPE=${idx === 0 ? 'WORK,PREF' : 'CELL'}:${phone}`
+    ).join('\n');
+
+    let photoLine = '';
+    if (profile.image) {
+        try {
+            const resp = await fetch(profile.image);
+            if (resp.ok) {
+                const imgBlob = await resp.blob();
+                const base64 = await blobToBase64(imgBlob);
+                const mime = imgBlob.type || 'image/jpeg';
+                const typeLabel = mime.split('/')[1] ? mime.split('/')[1].toUpperCase() : 'JPEG';
+                // vCard 3.0 uses PHOTO;ENCODING=b;TYPE=JPEG:BASE64
+                photoLine = `PHOTO;ENCODING=b;TYPE=${typeLabel}:${base64}\n`;
+            }
+        } catch (e) {
+            console.warn('Could not load profile image for vCard embedding:', e);
+        }
+    }
+
+    return `BEGIN:VCARD\nVERSION:3.0\nFN:${profile.name}\nTITLE:${profile.title}\nORG:Hassan II Institute of Agronomy and Veterinary Medicine\n${photoLine}${phoneLines}\n${emailLines}\nURL:https://${profile.website}\nADR:;;${profile.location}\nEND:VCARD`;
+}
+
+// Create vCard Blob (async, may embed photo)
+async function getVCardBlob(profile) {
+    const vcard = await generateVCardWithPhoto(profile);
     return new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
 }
 
@@ -250,8 +297,12 @@ async function renderCard(profileId) {
 
             <!-- Add to Contacts Button -->
             <div class="text-center mt-3 mb-2">
-                <button class="btn-add-contact" onclick="window.openCurrentVCard()">
-                    <i class="fas fa-user-plus"></i> Add to Contacts
+                <button class="btn-add-contact btn-add-contact--red" onclick="window.openCurrentVCard()" aria-label="Add to Contacts">
+                    <!-- Simple outlined plus icon (white) -->
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="btn-add-text">Add to Contacts</span>
                 </button>
             </div>
         </div>
