@@ -1,0 +1,13 @@
+{
+  "path": "/john",
+  "name": "John Example",
+  "nameAr": "",
+  "title": "Engineer",
+  "titleAr": "",
+  "image": "persons/john.png",
+  "email": ["john@example.com", "john.work@example.com"],
+  "phone": ["+212 600 00 00 03", "+212 600 00 00 04"],
+  "location": "Madinat Al Irfane, P.O. Box 6202, Rabat, Morocco",
+  "locationAr": "",
+  "website": "example.com"
+}

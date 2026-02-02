@@ -76,6 +76,31 @@ async function getProfileIdFromPath(segment) {
     return null;
 }
 
+// Preload profile images for all discovered profiles to make profile open faster.
+// This launches loads in parallel but does not block rendering.
+async function preloadProfileImages() {
+    if (!Array.isArray(availableProfiles) || availableProfiles.length === 0) return;
+
+    // Load profiles in parallel but limit to reasonable concurrency to avoid
+    // overwhelming the network. We'll batch them in chunks of 8.
+    const chunkSize = 8;
+    for (let i = 0; i < availableProfiles.length; i += chunkSize) {
+        const chunk = availableProfiles.slice(i, i + chunkSize);
+        const promises = chunk.map(id => loadProfile(id).catch(() => null));
+        const profiles = await Promise.all(promises);
+
+        profiles.forEach(p => {
+            if (!p || !p.image) return;
+            // normalize path: absolute if needed
+            const src = (/^https?:\/\//i.test(p.image) || p.image.startsWith('/')) ? p.image : `/${p.image}`;
+            const img = new Image();
+            img.src = src;
+            img.onload = () => console.debug('Preloaded image', src);
+            img.onerror = () => console.warn('Failed to preload image', src);
+        });
+    }
+}
+
 // Generate basic vCard content (CRLF-separated), no photo
 function generateVCard(profile) {
     const CRLF = '\r\n';
@@ -235,6 +260,12 @@ async function renderCard(profileId) {
     const phoneHtml = phones.map((phone) => `
                         <a href="tel:${phone.replace(/\s/g, '')}" class="contact-text contact-link">${phone}</a>
                     `).join(' &nbsp; - &nbsp; ');
+    // Normalize image path so it works whether using hash routing (#id) or
+    // direct path routes (/profile). If the configured path is relative (no
+    // leading slash), make it absolute from site root.
+    const imgSrc = profile.image ? (
+        (/^https?:\/\//i.test(profile.image) || profile.image.startsWith('/')) ? profile.image : `/${profile.image}`
+    ) : null;
     
     container.innerHTML = `
         <div class="card-simple">
@@ -247,8 +278,8 @@ async function renderCard(profileId) {
 
             <!-- Profile Image & Name -->
             <div class="profile-simple text-center">
-                ${profile.image ? `
-                    <img src="${profile.image}" alt="${profile.name}" class="profile-pic">
+                ${imgSrc ? `
+                    <img src="${imgSrc}" alt="${profile.name}" class="profile-pic">
                 ` : ''}
                 <h1 class="profile-name">${profile.name}</h1>
                 ${profile.nameAr ? `<p class="profile-name-ar">${profile.nameAr}</p>` : ''}
@@ -341,6 +372,9 @@ async function renderCard(profileId) {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
+    // Ensure the list of available profiles is loaded (auto-discovery)
+    if (typeof ensureProfilesLoaded === 'function') await ensureProfilesLoaded();
+
     let profileId = getProfileFromURL();
     
     // If we got a path but it's not a direct profile ID, try to map it
@@ -353,6 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Handle browser navigation (back/forward)
 window.addEventListener('popstate', async () => {
+    if (typeof ensureProfilesLoaded === 'function') await ensureProfilesLoaded();
     let profileId = getProfileFromURL();
     
     // If we got a path but it's not a direct profile ID, try to map it
