@@ -6,9 +6,31 @@ function getProfileFromURL() {
     
     // Check for path (/director)
     const path = window.location.pathname;
-    const match = path.match(/\/([^\/]+)$/);
-    if (match && match[1] !== 'index.html') {
-        return match[1];
+    // Remove trailing slash and get the last segment
+    const cleanPath = path.endsWith('/') ? path.slice(0, -1) : path;
+    const lastSegment = cleanPath.split('/').pop();
+    
+    // Only return if it's not empty, not index.html, and not a common file
+    if (lastSegment && lastSegment !== 'index.html' && !lastSegment.includes('.')) {
+        return lastSegment;
+    }
+    
+    return null;
+}
+
+// Map custom path to profile ID
+async function getProfileIdFromPath(customPath) {
+    // If path already matches a profile ID, return it
+    if (availableProfiles.includes(customPath)) {
+        return customPath;
+    }
+    
+    // Otherwise, search profiles for matching path
+    for (const id of availableProfiles) {
+        const profile = await loadProfile(id);
+        if (profile && profile.path === '/' + customPath) {
+            return id;
+        }
     }
     
     return null;
@@ -202,12 +224,24 @@ async function renderCard(profileId) {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
-    const profileId = getProfileFromURL();
+    let profileId = getProfileFromURL();
+    
+    // If we got a path but it's not a direct profile ID, try to map it
+    if (profileId && !availableProfiles.includes(profileId)) {
+        profileId = await getProfileIdFromPath(profileId);
+    }
+    
     await renderCard(profileId);
 });
 
 // Handle browser navigation (back/forward)
 window.addEventListener('popstate', async () => {
-    const profileId = getProfileFromURL();
+    let profileId = getProfileFromURL();
+    
+    // If we got a path but it's not a direct profile ID, try to map it
+    if (profileId && !availableProfiles.includes(profileId)) {
+        profileId = await getProfileIdFromPath(profileId);
+    }
+    
     await renderCard(profileId);
 });
