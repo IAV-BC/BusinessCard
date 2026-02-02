@@ -1,0 +1,13 @@
+{
+  "path": "/profile2",
+  "name": "Dr. Example Name",
+  "nameAr": "",
+  "title": "POSITION TITLE",
+  "titleAr": "المنصب",
+  "image": "persons/profile2.jpeg",
+  "email": ["email@iav.ac.ma"],
+  "phone": ["+212 XXX XX XX XX"],
+  "location": "Madinat Al Irfane, P.O. Box 6202, Rabat, Morocco",
+  "locationAr": "مدينة العرفان ص.ب 6202 ، الرباط، المغرب",
+  "website": "www.iav.ac.ma"
+}

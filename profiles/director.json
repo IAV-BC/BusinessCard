@@ -1,0 +1,13 @@
+{
+  "path": "/director",
+  "name": "Prof. Abdelaziz EL HRAIKI",
+  "nameAr": "",
+  "title": "DIRECTOR",
+  "titleAr": "المدير العام",
+  "image": "persons/director.jpeg",
+  "email": ["dg@iav.ac.ma", "a.elhraiki@iav.ac.ma"],
+  "phone": ["+212 661 37 39 60"],
+  "location": "Madinat Al Irfane, P.O. Box 6202, Rabat, Morocco",
+  "locationAr": "مدينة العرفان ص.ب 6202 ، الرباط، المغرب",
+  "website": "www.iav.ac.ma"
+}
