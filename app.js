@@ -110,21 +110,85 @@ async function preloadProfileImages() {
 
             const img = new Image();
             img.src = src;
-            img.onload = () => console.debug('Preloaded image', src);
-            img.onerror = () => console.warn('Failed to preload image', src);
+            img.onload = () => console.debug('✓ Preloaded image:', src);
+            img.onerror = () => {
+                console.error(
+                    '%c✗ Image Load Error', 'color: red; font-weight: bold',
+                    '\nFailed to load image at:\n' + src +
+                    '\n\nPossible causes:\n' +
+                    '• Image path in JSON uses leading slash (/persons/...)\n' +
+                    '• File does not exist in persons/ folder\n' +
+                    '• GitHub Pages base path incorrect\n\n' +
+                    'Fix: Ensure JSON files use relative paths like "persons/profile.png"\n' +
+                    'Current base path detected:', getBasePath()
+                );
+            };
         });
     }
 }
 
 // Compute the site's base path (pathname without filename) with leading and trailing slash.
 function getBasePath() {
+    // 1) Use <base href="..."> if present
+    try {
+        const baseEl = document.querySelector('base[href]');
+        if (baseEl) {
+            const href = baseEl.getAttribute('href') || '/';
+            const url = new URL(href, window.location.href);
+            let path = url.pathname;
+            if (!path.endsWith('/')) path += '/';
+            console.debug('[getBasePath] Using <base href>:', path);
+            return path;
+        }
+    } catch (e) {
+        console.debug('[getBasePath] <base> detection failed:', e.message);
+    }
+
+    // 2) Try to infer the base from the current script URL (app.js)
+    try {
+        const scripts = Array.from(document.getElementsByTagName('script'));
+        for (const s of scripts) {
+            const src = s.getAttribute('src') || '';
+            if (src && (src.includes('app.js') || src.includes('profiles.js'))) {
+                const url = new URL(src, window.location.href);
+                let path = url.pathname;
+                // remove filename portion
+                if (path.lastIndexOf('/') > 0) {
+                    path = path.substring(0, path.lastIndexOf('/') + 1);
+                }
+                if (!path.endsWith('/')) path += '/';
+                console.debug('[getBasePath] From script src:', src, '→', path);
+                return path;
+            }
+        }
+    } catch (e) {
+        console.debug('[getBasePath] Script detection failed:', e.message);
+    }
+
+    // 3) GitHub Pages detection: if hostname is .github.io, extract repo from pathname
+    try {
+        const pathname = window.location.pathname || '/';
+        const hostname = window.location.hostname || '';
+        if (hostname.includes('.github.io')) {
+            const parts = pathname.split('/').filter(Boolean);
+            if (parts.length > 0) {
+                const basePath = '/' + parts[0] + '/';
+                console.debug('[getBasePath] GitHub Pages detected. Pathname:', pathname, '→ basePath:', basePath);
+                return basePath;
+            }
+        }
+    } catch (e) {
+        console.debug('[getBasePath] GitHub Pages detection failed:', e.message);
+    }
+
+    // 4) Fallback to pathname behavior
     let basePath = window.location.pathname || '/';
-    // Remove filename if present (e.g. /repo/index.html or /index.html)
     if (basePath.indexOf('.') !== -1) {
         basePath = basePath.substring(0, basePath.lastIndexOf('/') + 1);
     }
     if (!basePath.startsWith('/')) basePath = '/' + basePath;
     if (!basePath.endsWith('/')) basePath += '/';
+    console.debug('[getBasePath] Fallback pathname:', basePath);
     return basePath;
 }
 
