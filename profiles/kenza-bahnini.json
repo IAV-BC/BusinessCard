@@ -7,7 +7,9 @@
   "image": "persons/com.png",
   "email": ["k.bahnini@iav.ac.ma", "communication@iav.ac.ma"],
   "phone": ["+212 674 275 371", "+212 634 585 362"],
-  "location": "Madinat Al Irfane, P.O. Box 6202, Rabat, Morocco",
+  "location": "Madinat Al Irfane, B.P. 6202, Rabat, Maroc",
   "locationAr": "مدينة العرفان ص.ب 6202 ، الرباط، المغرب",
-  "website": "www.iav.ac.ma"
+  "website": "www.iav.ac.ma",
+  "iavTitle": "Institut Agronomique et Vétérinaire Hassan II",
+  "iavTitleAr": "معهد الحسن الثاني للزراعة و البيطرة"
 }

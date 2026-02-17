@@ -450,14 +450,16 @@ async function renderCard(profileId) {
         ? `<img src="${imgSrc}" alt="${escapeHtml(profile.name)}" class="profile-pic">`
         : getFallbackAvatarHtml(profileId, profile.name);
     
+    // Use iavTitle and iavTitleAr from JSON for the IAV header, fallback to defaults if not present
+    const iavTitle = profile.iavTitle || 'Hassan II Institute of Agronomy and Veterinary Medicine';
+    const iavTitleAr = profile.iavTitleAr || 'معهد الحسن الثاني للزراعة و البيطرة';
+    const iavTitleHtml = `
+        <h3 class=\"institute-title\">${iavTitle}</h3>
+        <p class=\"institute-title-ar\">${iavTitleAr}</p>
+    `;
     container.innerHTML = `
-        <div class="card-simple">
-            <!-- Logo & Header -->
-            <div class="header-simple text-center">
-                <img src="logo.png" alt="IAV Logo" class="logo-simple">
-                <h3 class="institute-title">Hassan II Institute of Agronomy and Veterinary Medicine</h3>
-                <p class="institute-title-ar">معهد الحسن الثاني للزراعة و البيطرة</p>
-            </div>
+        <div class=\"card-simple\">\n            <!-- Logo & Header -->\n            <div class=\"header-simple text-center\">\n                <img src=\"logo.png\" alt=\"IAV Logo\" class=\"logo-simple\">\n                ${iavTitleHtml}\n            </div>
+            <!-- ...existing code... -->
 
             <!-- Profile Image & Name -->
             <div class="profile-simple text-center">

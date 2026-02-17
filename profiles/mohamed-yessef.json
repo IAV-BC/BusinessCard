@@ -7,7 +7,9 @@
   "image": "persons/dcpd.jpeg",
   "email": ["dcpd@iav.ac.ma", "m.yessef@iav.ac.ma", "y_toufik2006@yahoo.fr"],
   "phone": ["+212 661 078 260"],
-  "location": "Madinat Al Irfane, P.O. Box 6202, Rabat, Morocco",
+  "location": "Madinat Al Irfane, B.P. 6202, Rabat, Maroc",
   "locationAr": "مدينة العرفان ص.ب 6202 ، الرباط، المغرب",
-  "website": "www.iav.ac.ma"
+  "website": "www.iav.ac.ma",
+  "iavTitle": "Institut Agronomique et Vétérinaire Hassan II",
+  "iavTitleAr": "معهد الحسن الثاني للزراعة و البيطرة"
 }

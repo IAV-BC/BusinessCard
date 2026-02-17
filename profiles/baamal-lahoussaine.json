@@ -7,7 +7,9 @@
   "image": "persons/deaa.png",
   "email": ["deaa@iav.ac.ma", "L.baamal@iav.ac.ma"],
   "phone": ["+212 6 61 68 20 33", "+212 7 03 19 74 68"],
-  "location": "Madinat Al Irfane, P.O. Box 6202, Rabat, Morocco",
+  "location": "Madinat Al Irfane, B.P. 6202, Rabat, Maroc",
   "locationAr": "مدينة العرفان ص.ب 6202 ، الرباط، المغرب",
-  "website": "www.iav.ac.ma"
+  "website": "www.iav.ac.ma",
+  "iavTitle": "Institut Agronomique et Vétérinaire Hassan II",
+  "iavTitleAr": "معهد الحسن الثاني للزراعة و البيطرة"
 }
